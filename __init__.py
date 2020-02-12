@@ -54,7 +54,14 @@ class Isosurface:
         self.objects_list = cmd.get_names('objects')
         self.objects_list = [e for e in self.objects_list
                              if cmd.get_type(e) == 'object:map']
+        self.slider_precision = 1000
         self.bindings()
+
+    def iso_to_slider(self, isovalue):
+        return int(isovalue*self.slider_precision)
+
+    def slider_to_iso(self, val):
+        return val/float(self.slider_precision)
 
     def load_isosurface(self, mrc):
         cmd.isosurface('isosurf', mrc, level=0.1)
@@ -63,10 +70,17 @@ class Isosurface:
         isomax = grid.max()
         self.form.label_isomin.setText('%.4f' % isomin)
         self.form.label_isomax.setText('%.4f' % isomax)
+        self.form.isoslider.setMinimum(self.iso_to_slider(isomin))
+        self.form.isoslider.setMaximum(self.iso_to_slider(isomax))
+        self.form.isoslider.setTickInterval(1)
+        self.form.isoslider.setValue(self.iso_to_slider(isomin+(isomax-isomin)/2.))
 
-    def set_isovalue(self, isovalue):
-        pass
+    def set_isovalue(self, mrc, val):
+        isovalue = self.slider_to_iso(val)
+        cmd.isosurface('isosurf', mrc, level=isovalue)
 
     def bindings(self):
         self.form.mapselector.addItems(self.objects_list)
         self.form.mapselector.activated.connect(lambda: self.load_isosurface(self.form.mapselector.currentText()))
+        self.form.isoslider.sliderMoved.connect(lambda: self.set_isovalue(self.form.mapselector.currentText(),
+                                                                          self.form.isoslider.sliderPosition()))
