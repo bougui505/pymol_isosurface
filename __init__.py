@@ -12,6 +12,14 @@ from __future__ import print_function
 # executed on PyMOL's startup. Only import such modules inside functions.
 
 import os
+# entry point to PyMOL's API
+from pymol import cmd
+
+# pymol.Qt provides the PyQt5 interface, but may support PyQt4
+# and/or PySide as well
+from pymol.Qt import QtWidgets
+from pymol.Qt.utils import loadUi
+from pymol.Qt.utils import getSaveFileNameWithExt
 
 
 def __init_plugin__(app=None):
@@ -33,42 +41,32 @@ def run_plugin_gui():
     global dialog
 
     if dialog is None:
-        dialog = make_dialog()
-
+        dialog = QtWidgets.QDialog()
+        uifile = os.path.join(os.path.dirname(__file__), 'gui.ui')
+        form = loadUi(uifile, dialog)
+        Isosurface(form)
     dialog.show()
 
 
-def make_dialog():
-    # entry point to PyMOL's API
-    from pymol import cmd
+class Isosurface:
+    def __init__(self, form):
+        self.form = form
+        self.objects_list = cmd.get_names('objects')
+        self.objects_list = [e for e in self.objects_list
+                             if cmd.get_type(e) == 'object:map']
+        self.bindings()
 
-    # pymol.Qt provides the PyQt5 interface, but may support PyQt4
-    # and/or PySide as well
-    from pymol.Qt import QtWidgets
-    from pymol.Qt.utils import loadUi
-    from pymol.Qt.utils import getSaveFileNameWithExt
-
-    # create a new Window
-    dialog = QtWidgets.QDialog()
-
-    # populate the Window from our *.ui file which was created with the Qt Designer
-    uifile = os.path.join(os.path.dirname(__file__), 'gui.ui')
-    form = loadUi(uifile, dialog)
-
-    def load_isosurface(mrc):
+    def load_isosurface(self, mrc):
         cmd.isosurface('isosurf', mrc, level=0.1)
         grid = cmd.get_volume_field(mrc)
         isomin = grid.min()
         isomax = grid.max()
-        form.label_isomin.setText('%.4f' % isomin)
-        form.label_isomax.setText('%.4f' % isomax)
+        self.form.label_isomin.setText('%.4f' % isomin)
+        self.form.label_isomax.setText('%.4f' % isomax)
 
-    def set_isovalue(isovalue):
+    def set_isovalue(self, isovalue):
         pass
 
-    objects_list = cmd.get_names('objects')
-    objects_list = [e for e in objects_list
-                    if cmd.get_type(e) == 'object:map']
-    form.mapselector.addItems(objects_list)
-    form.mapselector.activated.connect(lambda: load_isosurface(form.mapselector.currentText()))
-    return dialog
+    def bindings(self):
+        self.form.mapselector.addItems(self.objects_list)
+        self.form.mapselector.activated.connect(lambda: self.load_isosurface(self.form.mapselector.currentText()))
