@@ -52,8 +52,8 @@ class Isosurface:
     def __init__(self, form):
         self.form = form
         self.objects_list = cmd.get_names('objects')
-        self.objects_list = [e for e in self.objects_list
-                             if cmd.get_type(e) == 'object:map']
+        self.maps_list = [e for e in self.objects_list
+                          if cmd.get_type(e) == 'object:map']
         self.slider_precision = 1000
         self.bindings()
 
@@ -95,7 +95,9 @@ class Isosurface:
         self.form.isoval_edit.setText(str(self.isoslider_value))
 
     def bindings(self):
-        self.form.mapselector.addItems(self.objects_list)
-        self.form.mapselector.activated.connect(lambda: self.load_isosurface(self.form.mapselector.currentText()))
+        self.form.mapselector.addItems(self.maps_list)
+        if len(self.maps_list) == 1:
+            self.load_isosurface(self.current_mrc)
+        self.form.mapselector.activated.connect(lambda: self.load_isosurface(self.current_mrc))
         self.form.isoslider.valueChanged.connect(lambda: self.set_isovalue())
         self.form.isoval_edit.editingFinished.connect(lambda: self.form.isoslider.setValue(self.iso_to_slider(self.isotext_value)))
