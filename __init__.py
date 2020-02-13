@@ -58,13 +58,26 @@ class Isosurface:
         self.bindings()
 
     def iso_to_slider(self, isovalue):
-        return int(isovalue*self.slider_precision)
+        return int(isovalue * self.slider_precision)
 
     def slider_to_iso(self, val):
-        return val/float(self.slider_precision)
+        return val / float(self.slider_precision)
+
+    @property
+    def isoslider_value(self):
+        sliderval = self.form.isoslider.value()
+        isoval = self.slider_to_iso(sliderval)
+        return isoval
+
+    @property
+    def isotext_value(self):
+        return float(self.form.isoval_edit.text())
+
+    @property
+    def current_mrc(self):
+        return self.form.mapselector.currentText()
 
     def load_isosurface(self, mrc):
-        cmd.isosurface('isosurf', mrc, level=0.1)
         grid = cmd.get_volume_field(mrc)
         isomin = grid.min()
         isomax = grid.max()
@@ -73,14 +86,16 @@ class Isosurface:
         self.form.isoslider.setMinimum(self.iso_to_slider(isomin))
         self.form.isoslider.setMaximum(self.iso_to_slider(isomax))
         self.form.isoslider.setTickInterval(1)
-        self.form.isoslider.setValue(self.iso_to_slider(isomin+(isomax-isomin)/2.))
+        self.form.isoslider.setValue(self.iso_to_slider(isomin + (isomax - isomin) / 2.))
+        self.form.isoval_edit.setText(str(self.isoslider_value))
+        cmd.isosurface('isosurf', mrc, level=self.isoslider_value)
 
-    def set_isovalue(self, mrc, val):
-        isovalue = self.slider_to_iso(val)
-        cmd.isosurface('isosurf', mrc, level=isovalue)
+    def set_isovalue(self):
+        cmd.isosurface('isosurf', self.current_mrc, level=self.isoslider_value)
+        self.form.isoval_edit.setText(str(self.isoslider_value))
 
     def bindings(self):
         self.form.mapselector.addItems(self.objects_list)
         self.form.mapselector.activated.connect(lambda: self.load_isosurface(self.form.mapselector.currentText()))
-        self.form.isoslider.sliderMoved.connect(lambda: self.set_isovalue(self.form.mapselector.currentText(),
-                                                                          self.form.isoslider.sliderPosition()))
+        self.form.isoslider.valueChanged.connect(lambda: self.set_isovalue())
+        self.form.isoval_edit.editingFinished.connect(lambda: self.form.isoslider.setValue(self.iso_to_slider(self.isotext_value)))
