@@ -77,6 +77,21 @@ class Isosurface:
     def current_mrc(self):
         return self.form.mapselector.currentText()
 
+    @property
+    def zone_selection(self):
+        rawtext = self.form.selectionbox.text()
+        if rawtext != "":
+            return self.form.selectionbox.text()
+        else:
+            return None
+
+    @property
+    def zone_radius(self):
+        try:
+            return float(self.form.radiusbox.text())
+        except ValueError:
+            return None
+
     def load_isosurface(self, mrc):
         grid = cmd.get_volume_field(mrc)
         isomin = grid.min()
@@ -91,8 +106,19 @@ class Isosurface:
         cmd.isosurface('isosurf', mrc, level=self.isoslider_value)
 
     def set_isovalue(self):
-        cmd.isosurface('isosurf', self.current_mrc, level=self.isoslider_value)
+        if self.zone_selection is not None and self.zone_radius is not None:
+            cmd.isosurface('isosurf', self.current_mrc, level=self.isoslider_value,
+                           selection=self.zone_selection, carve=self.zone_radius)
+        else:
+            cmd.isosurface('isosurf', self.current_mrc, level=self.isoslider_value)
         self.form.isoval_edit.setText(str(self.isoslider_value))
+
+    def get_zone_selection(self):
+        cmd.select('zone_selection', selection=self.zone_selection, enable=0)
+
+    def zone_map(self):
+        cmd.isosurface('isosurf', self.current_mrc, level=self.isoslider_value,
+                       selection='zone_selection', carve=self.zone_radius)
 
     def bindings(self):
         self.form.mapselector.addItems(self.maps_list)
@@ -101,3 +127,5 @@ class Isosurface:
         self.form.mapselector.activated.connect(lambda: self.load_isosurface(self.current_mrc))
         self.form.isoslider.valueChanged.connect(lambda: self.set_isovalue())
         self.form.isoval_edit.editingFinished.connect(lambda: self.form.isoslider.setValue(self.iso_to_slider(self.isotext_value)))
+        self.form.selectionbox.editingFinished.connect(self.get_zone_selection)
+        self.form.radiusbox.editingFinished.connect(self.zone_map)
