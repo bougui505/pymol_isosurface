@@ -55,6 +55,9 @@ class Isosurface:
         self.maps_list = [e for e in self.objects_list
                           if cmd.get_type(e) == 'object:map']
         self.slider_precision = 1000
+        self.transparency_slider_precision = 100.
+        self.form.transparency_slider.setMinimum(0)
+        self.form.transparency_slider.setMaximum(100)
         self.bindings()
 
     def iso_to_slider(self, isovalue):
@@ -78,6 +81,10 @@ class Isosurface:
         return self.form.mapselector.currentText()
 
     @property
+    def transparency_value(self):
+        return self.form.transparency_slider.value() / self.transparency_slider_precision
+
+    @property
     def zone_selection(self):
         rawtext = self.form.selectionbox.text()
         if rawtext != "":
@@ -91,6 +98,10 @@ class Isosurface:
             return float(self.form.radiusbox.text())
         except ValueError:
             return None
+
+    def set_transparency(self):
+        cmd.set('transparency', value=self.transparency_value,
+                selection='isosurf')
 
     def load_isosurface(self, mrc):
         grid = cmd.get_volume_field(mrc)
@@ -129,3 +140,4 @@ class Isosurface:
         self.form.isoval_edit.editingFinished.connect(lambda: self.form.isoslider.setValue(self.iso_to_slider(self.isotext_value)))
         self.form.selectionbox.editingFinished.connect(self.get_zone_selection)
         self.form.radiusbox.editingFinished.connect(self.zone_map)
+        self.form.transparency_slider.valueChanged.connect(self.set_transparency)
