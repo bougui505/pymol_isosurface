@@ -60,7 +60,8 @@ class Isosurface:
         self.form.transparency_slider.setMaximum(100)
         self.form.mapselector.addItems(self.maps_list)
         self.grid = None
-        if len(self.maps_list) == 1:
+        self.set_isoslider(self.current_mrc)
+        if len(self.maps_list) == 1 and 'isosurf' not in self.objects_list:
             # It defines self.grid
             self.load_isosurface(self.current_mrc)
         self.bindings()
@@ -108,7 +109,7 @@ class Isosurface:
         cmd.set('transparency', value=self.transparency_value,
                 selection='isosurf')
 
-    def load_isosurface(self, mrc):
+    def set_isoslider(self, mrc):
         self.grid = cmd.get_volume_field(mrc)
         isomin = self.grid.min()
         isomax = self.grid.max()
@@ -119,6 +120,9 @@ class Isosurface:
         self.form.isoslider.setTickInterval(1)
         self.form.isoslider.setValue(self.iso_to_slider(isomin + (isomax - isomin) / 2.))
         self.form.isoval_edit.setText(str(self.isoslider_value))
+
+    def load_isosurface(self, mrc):
+        self.set_isoslider(mrc)
         cmd.isosurface('isosurf', mrc, level=self.isoslider_value)
 
     def set_isovalue(self):
