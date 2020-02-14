@@ -58,6 +58,11 @@ class Isosurface:
         self.transparency_slider_precision = 100.
         self.form.transparency_slider.setMinimum(0)
         self.form.transparency_slider.setMaximum(100)
+        self.form.mapselector.addItems(self.maps_list)
+        self.grid = None
+        if len(self.maps_list) == 1:
+            # It defines self.grid
+            self.load_isosurface(self.current_mrc)
         self.bindings()
 
     def iso_to_slider(self, isovalue):
@@ -104,9 +109,9 @@ class Isosurface:
                 selection='isosurf')
 
     def load_isosurface(self, mrc):
-        grid = cmd.get_volume_field(mrc)
-        isomin = grid.min()
-        isomax = grid.max()
+        self.grid = cmd.get_volume_field(mrc)
+        isomin = self.grid.min()
+        isomax = self.grid.max()
         self.form.label_isomin.setText('%.4f' % isomin)
         self.form.label_isomax.setText('%.4f' % isomax)
         self.form.isoslider.setMinimum(self.iso_to_slider(isomin))
@@ -132,9 +137,6 @@ class Isosurface:
                        selection='zone_selection', carve=self.zone_radius)
 
     def bindings(self):
-        self.form.mapselector.addItems(self.maps_list)
-        if len(self.maps_list) == 1:
-            self.load_isosurface(self.current_mrc)
         self.form.mapselector.activated.connect(lambda: self.load_isosurface(self.current_mrc))
         self.form.isoslider.valueChanged.connect(lambda: self.set_isovalue())
         self.form.isoval_edit.editingFinished.connect(lambda: self.form.isoslider.setValue(self.iso_to_slider(self.isotext_value)))
