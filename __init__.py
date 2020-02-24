@@ -19,6 +19,7 @@ from pymol import cmd
 # and/or PySide as well
 from pymol.Qt import QtWidgets
 from pymol.Qt.utils import loadUi
+import urllib.request
 
 
 def __init_plugin__(app=None):
@@ -50,20 +51,22 @@ def run_plugin_gui():
 class Isosurface:
     def __init__(self, form):
         self.form = form
-        self.objects_list = cmd.get_names('objects')
-        self.maps_list = [e for e in self.objects_list
-                          if cmd.get_type(e) == 'object:map']
+        self.fill_map_list()
         self.slider_precision = 1000
         self.transparency_slider_precision = 100.
         self.form.transparency_slider.setMinimum(0)
         self.form.transparency_slider.setMaximum(100)
-        self.form.mapselector.addItems(self.maps_list)
         self.grid = None
         if len(self.maps_list) == 1 and 'isosurf' not in self.objects_list:
             # It defines self.grid
-            self.set_isoslider(self.current_mrc)
             self.load_isosurface(self.current_mrc)
         self.bindings()
+
+    def fill_map_list(self):
+        self.objects_list = cmd.get_names('objects')
+        self.maps_list = [e for e in self.objects_list
+                          if cmd.get_type(e) == 'object:map']
+        self.form.mapselector.addItems(self.maps_list)
 
     def iso_to_slider(self, isovalue):
         return int(isovalue * self.slider_precision)
@@ -149,6 +152,13 @@ class Isosurface:
     def fetch_emd(self):
         if self.emd_id is not None:
             fetch_path = cmd.get('fetch_path')
+            urlstr = 'ftp://ftp.wwpdb.org/pub/emdb/structures/EMD-%s/map/emd_%s.map.gz' % (self.emd_id, self.emd_id)
+            emd_filename = '%s/emd_%s.map.gz' % (fetch_path, self.emd_id)
+            if not os.path.exists(emd_filename):
+                urllib.request.urlretrieve(urlstr, emd_filename)
+            cmd.load(emd_filename)
+            self.fill_map_list()
+            self.load_isosurface(self.current_mrc)
 
     def bindings(self):
         self.form.mapselector.activated.connect(lambda: self.load_isosurface(self.current_mrc))
