@@ -139,7 +139,7 @@ class Isosurface:
         cmd.isosurface('isosurf', mrc, level=self.isoslider_value)
 
     def set_isovalue(self):
-        if self.zone_selection is not None and self.zone_radius is not None:
+        if self.zone_selection is not None and self.zone_radius is not None and self.is_zone:
             cmd.isosurface('isosurf', self.current_mrc, level=self.isoslider_value,
                            selection=self.zone_selection, carve=self.zone_radius)
         else:
