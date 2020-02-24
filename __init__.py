@@ -167,4 +167,4 @@ class Isosurface:
         self.form.selectionbox.editingFinished.connect(self.get_zone_selection)
         self.form.radiusbox.editingFinished.connect(self.zone_map)
         self.form.transparency_slider.valueChanged.connect(self.set_transparency)
-        self.form.emd_id.editingFinished.connect(self.fetch_emd)
+        self.form.emd_id.returnPressed.connect(self.fetch_emd)
