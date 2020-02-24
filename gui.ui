@@ -98,19 +98,6 @@
     </rect>
    </property>
   </widget>
-  <widget class="QLabel" name="label_3">
-   <property name="geometry">
-    <rect>
-     <x>40</x>
-     <y>351</y>
-     <width>41</width>
-     <height>19</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Zone</string>
-   </property>
-  </widget>
   <widget class="QLabel" name="label_4">
    <property name="geometry">
     <rect>
@@ -256,6 +243,19 @@
      <width>113</width>
      <height>27</height>
     </rect>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="zone_checkBox">
+   <property name="geometry">
+    <rect>
+     <x>40</x>
+     <y>350</y>
+     <width>92</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Zone</string>
    </property>
   </widget>
  </widget>

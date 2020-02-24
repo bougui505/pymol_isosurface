@@ -93,6 +93,10 @@ class Isosurface:
         return self.form.transparency_slider.value() / self.transparency_slider_precision
 
     @property
+    def is_zone(self):
+        return self.form.zone_checkBox.isChecked()
+
+    @property
     def zone_selection(self):
         rawtext = self.form.selectionbox.text()
         if rawtext != "":
@@ -148,6 +152,14 @@ class Isosurface:
     def zone_map(self):
         cmd.isosurface('isosurf', self.current_mrc, level=self.isoslider_value,
                        selection='zone_selection', carve=self.zone_radius)
+        self.form.zone_checkBox.setChecked(True)
+
+    def toggle_zone_map(self):
+        if self.is_zone:
+            self.zone_map()
+        else:
+            cmd.isosurface('isosurf', self.current_mrc,
+                           level=self.isoslider_value)
 
     def fetch_emd(self):
         if self.emd_id is not None:
@@ -168,3 +180,4 @@ class Isosurface:
         self.form.radiusbox.editingFinished.connect(self.zone_map)
         self.form.transparency_slider.valueChanged.connect(self.set_transparency)
         self.form.emd_id.returnPressed.connect(self.fetch_emd)
+        self.form.zone_checkBox.stateChanged.connect(self.toggle_zone_map)
