@@ -19,6 +19,7 @@ from pymol import cmd
 # and/or PySide as well
 from pymol.Qt import QtWidgets
 from pymol.Qt.utils import loadUi
+from pymol.Qt.utils import getSaveFileNameWithExt
 
 
 def __init_plugin__(app=None):
@@ -59,9 +60,9 @@ class Isosurface:
         self.form.transparency_slider.setMaximum(100)
         self.form.mapselector.addItems(self.maps_list)
         self.grid = None
+        self.set_isoslider(self.current_mrc)
         if len(self.maps_list) == 1 and 'isosurf' not in self.objects_list:
             # It defines self.grid
-            self.set_isoslider(self.current_mrc)
             self.load_isosurface(self.current_mrc)
         self.bindings()
 
@@ -104,13 +105,6 @@ class Isosurface:
         except ValueError:
             return None
 
-    @property
-    def emd_id(self):
-        try:
-            return self.form.emd_id.text()
-        except ValueError:
-            return None
-
     def set_transparency(self):
         cmd.set('transparency', value=self.transparency_value,
                 selection='isosurf')
@@ -146,10 +140,6 @@ class Isosurface:
         cmd.isosurface('isosurf', self.current_mrc, level=self.isoslider_value,
                        selection='zone_selection', carve=self.zone_radius)
 
-    def fetch_emd(self):
-        if self.emd_id is not None:
-            fetch_path = cmd.get('fetch_path')
-
     def bindings(self):
         self.form.mapselector.activated.connect(lambda: self.load_isosurface(self.current_mrc))
         self.form.isoslider.valueChanged.connect(lambda: self.set_isovalue())
@@ -157,4 +147,3 @@ class Isosurface:
         self.form.selectionbox.editingFinished.connect(self.get_zone_selection)
         self.form.radiusbox.editingFinished.connect(self.zone_map)
         self.form.transparency_slider.valueChanged.connect(self.set_transparency)
-        self.form.emd_id.editingFinished.connect(self.fetch_emd)
