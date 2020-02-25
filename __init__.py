@@ -58,8 +58,8 @@ class Isosurface:
         self.form.transparency_slider.setMaximum(100)
         self.grid = None
         self.isosurfname = None
-        if len(self.maps_list) == 1 and self.isosurfname not in self.objects_list:
-            # It defines self.grid
+        for i, mapname in enumerate(self.maps_list):
+            self.form.mapselector.setCurrentIndex(i)
             self.load_isosurface(self.current_mrc)
         self.bindings()
 
