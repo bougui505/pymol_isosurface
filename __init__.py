@@ -57,7 +57,8 @@ class Isosurface:
         self.form.transparency_slider.setMinimum(0)
         self.form.transparency_slider.setMaximum(100)
         self.grid = None
-        if len(self.maps_list) == 1 and 'isosurf' not in self.objects_list:
+        self.isosurfname = 'isosurf'
+        if len(self.maps_list) == 1 and self.isosurfname not in self.objects_list:
             # It defines self.grid
             self.load_isosurface(self.current_mrc)
         self.bindings()
@@ -120,7 +121,7 @@ class Isosurface:
 
     def set_transparency(self):
         cmd.set('transparency', value=self.transparency_value,
-                selection='isosurf')
+                selection=self.isosurfname)
 
     def set_isoslider(self, mrc, setvalue=True):
         self.grid = cmd.get_volume_field(mrc)
@@ -137,21 +138,21 @@ class Isosurface:
 
     def load_isosurface(self, mrc, setvalue=True):
         self.set_isoslider(mrc, setvalue=setvalue)
-        cmd.isosurface('isosurf', mrc, level=self.isoslider_value)
+        cmd.isosurface(self.isosurfname, mrc, level=self.isoslider_value)
 
     def set_isovalue(self):
         if self.zone_selection is not None and self.zone_radius is not None and self.is_zone:
-            cmd.isosurface('isosurf', self.current_mrc, level=self.isoslider_value,
+            cmd.isosurface(self.isosurfname, self.current_mrc, level=self.isoslider_value,
                            selection=self.zone_selection, carve=self.zone_radius)
         else:
-            cmd.isosurface('isosurf', self.current_mrc, level=self.isoslider_value)
+            cmd.isosurface(self.isosurfname, self.current_mrc, level=self.isoslider_value)
         self.form.isoval_edit.setText(str(self.isoslider_value))
 
     def get_zone_selection(self):
         cmd.select('zone_selection', selection=self.zone_selection, enable=0)
 
     def zone_map(self):
-        cmd.isosurface('isosurf', self.current_mrc, level=self.isoslider_value,
+        cmd.isosurface(self.isosurfname, self.current_mrc, level=self.isoslider_value,
                        selection='zone_selection', carve=self.zone_radius)
         self.form.zone_checkBox.setChecked(True)
 
@@ -159,7 +160,7 @@ class Isosurface:
         if self.is_zone:
             self.zone_map()
         else:
-            cmd.isosurface('isosurf', self.current_mrc,
+            cmd.isosurface(self.isosurfname, self.current_mrc,
                            level=self.isoslider_value)
 
     def fetch_emd(self):
