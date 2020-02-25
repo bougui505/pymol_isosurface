@@ -122,7 +122,7 @@ class Isosurface:
         cmd.set('transparency', value=self.transparency_value,
                 selection='isosurf')
 
-    def set_isoslider(self, mrc):
+    def set_isoslider(self, mrc, setvalue=True):
         self.grid = cmd.get_volume_field(mrc)
         isomin = self.grid.min()
         isomax = self.grid.max()
@@ -131,11 +131,12 @@ class Isosurface:
         self.form.isoslider.setMinimum(self.iso_to_slider(isomin))
         self.form.isoslider.setMaximum(self.iso_to_slider(isomax))
         self.form.isoslider.setTickInterval(1)
-        self.form.isoslider.setValue(self.iso_to_slider(isomin + (isomax - isomin) / 2.))
+        if setvalue:
+            self.form.isoslider.setValue(self.iso_to_slider(isomin + (isomax - isomin) / 2.))
         self.form.isoval_edit.setText(str(self.isoslider_value))
 
-    def load_isosurface(self, mrc):
-        self.set_isoslider(mrc)
+    def load_isosurface(self, mrc, setvalue=True):
+        self.set_isoslider(mrc, setvalue=setvalue)
         cmd.isosurface('isosurf', mrc, level=self.isoslider_value)
 
     def set_isovalue(self):
@@ -173,7 +174,7 @@ class Isosurface:
             self.load_isosurface(self.current_mrc)
 
     def bindings(self):
-        self.form.mapselector.activated.connect(lambda: self.load_isosurface(self.current_mrc))
+        self.form.mapselector.activated.connect(lambda: self.load_isosurface(self.current_mrc, setvalue=False))
         self.form.isoslider.valueChanged.connect(lambda: self.set_isovalue())
         self.form.isoval_edit.editingFinished.connect(lambda: self.form.isoslider.setValue(self.iso_to_slider(self.isotext_value)))
         self.form.selectionbox.editingFinished.connect(self.get_zone_selection)
