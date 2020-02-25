@@ -140,8 +140,8 @@ class Isosurface:
         self.form.isoval_edit.setText(str(self.isoslider_value))
 
     def load_isosurface(self, mrc, setvalue=True):
-        cmd.isosurface(self.isosurfname, mrc, level=self.isoslider_value)
         self.set_isoslider(mrc, setvalue=setvalue)
+        cmd.isosurface(self.isosurfname, mrc, level=self.isoslider_value)
 
     def set_isovalue(self):
         if self.zone_selection is not None and self.zone_radius is not None and self.is_zone:
