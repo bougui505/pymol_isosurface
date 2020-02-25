@@ -57,7 +57,7 @@ class Isosurface:
         self.form.transparency_slider.setMinimum(0)
         self.form.transparency_slider.setMaximum(100)
         self.grid = None
-        self.isosurfname = 'isosurf'
+        self.isosurfname = None
         if len(self.maps_list) == 1 and self.isosurfname not in self.objects_list:
             # It defines self.grid
             self.load_isosurface(self.current_mrc)
@@ -138,6 +138,7 @@ class Isosurface:
 
     def load_isosurface(self, mrc, setvalue=True):
         self.set_isoslider(mrc, setvalue=setvalue)
+        self.isosurfname = '%s_isosurf' % self.current_mrc
         cmd.isosurface(self.isosurfname, mrc, level=self.isoslider_value)
 
     def set_isovalue(self):
