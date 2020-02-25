@@ -57,7 +57,6 @@ class Isosurface:
         self.form.transparency_slider.setMinimum(0)
         self.form.transparency_slider.setMaximum(100)
         self.grid = None
-        self.isosurfname = None
         for i, mapname in enumerate(self.maps_list):
             self.form.mapselector.setCurrentIndex(i)
             self.load_isosurface(self.current_mrc)
@@ -88,6 +87,10 @@ class Isosurface:
     @property
     def current_mrc(self):
         return self.form.mapselector.currentText()
+
+    @property
+    def isosurfname(self):
+        return '%s_isosurf' % self.current_mrc
 
     @property
     def transparency_value(self):
@@ -137,9 +140,8 @@ class Isosurface:
         self.form.isoval_edit.setText(str(self.isoslider_value))
 
     def load_isosurface(self, mrc, setvalue=True):
-        self.set_isoslider(mrc, setvalue=setvalue)
-        self.isosurfname = '%s_isosurf' % self.current_mrc
         cmd.isosurface(self.isosurfname, mrc, level=self.isoslider_value)
+        self.set_isoslider(mrc, setvalue=setvalue)
 
     def set_isovalue(self):
         if self.zone_selection is not None and self.zone_radius is not None and self.is_zone:
