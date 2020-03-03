@@ -32,24 +32,6 @@ def read_mrc(mrcfilename):
         emd.data.flatten(order='F').reshape(nx, ny, nz)
 
 
-def save_density(density, outfilename, spacing, origin):
-    """
-    Save the density file as mrc for the given atomname
-    """
-    density = density.astype('float32')
-    with mrcfile.new(outfilename, overwrite=True) as mrc:
-        nx, ny, nz = density.shape
-        data = density.flatten().reshape((nx, ny, nz)).T
-        mrc.set_data(data)
-        mrc.voxel_size = spacing
-        mrc.header['origin']['x'] = origin[0]
-        mrc.header['origin']['y'] = origin[1]
-        mrc.header['origin']['z'] = origin[2]
-        mrc.update_header_from_data()
-        mrc.update_header_stats()
-        nx, ny, nz = mrc.header['nx'], mrc.header['ny'], mrc.header['nz']
-        print('Writing density:')
-        print(tuple(numpy.int_([nx, ny, nz])))
 
 
 def first_to_last(arr):
@@ -106,7 +88,8 @@ def crop(mrc, coords, padding, mrcfilename):
 
 class MRC(object):
     def __init__(self, mrcfilename):
-        self.read_mrc(mrcfilename)
+        self.mrcfilename = mrcfilename
+        self.read_mrc(self.mrcfilename)
 
     def read_mrc(self, mrcfilename):
         with mrcfile.open(mrcfilename) as emd:
@@ -133,3 +116,24 @@ class MRC(object):
             assert dy == dx and dz == dx
             self.step = dx
             self.origin = numpy.asarray([x0, y0, z0])
+
+    def write_mrc(self, mrcfilename=None):
+        """
+        Save the density file as a mrc file
+        """
+        density = self.grid.astype('float32')
+        if mrcfilename is not None:
+            self.mrcfilename = mrcfilename
+        with mrcfile.new(self.mrcfilename, overwrite=True) as mrc:
+            nx, ny, nz = density.shape
+            data = density.flatten().reshape((nx, ny, nz)).T
+            mrc.set_data(data)
+            mrc.voxel_size = self.step
+            mrc.header['origin']['x'] = self.origin[0]
+            mrc.header['origin']['y'] = self.origin[1]
+            mrc.header['origin']['z'] = self.origin[2]
+            mrc.update_header_from_data()
+            mrc.update_header_stats()
+            nx, ny, nz = mrc.header['nx'], mrc.header['ny'], mrc.header['nz']
+            print('Writing density:')
+            print(tuple(numpy.int_([nx, ny, nz])))
