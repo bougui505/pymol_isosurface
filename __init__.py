@@ -20,6 +20,7 @@ from pymol import cmd
 from pymol.Qt import QtWidgets
 from pymol.Qt.utils import loadUi
 import urllib.request
+import mrcutils
 
 
 def __init_plugin__(app=None):
@@ -66,6 +67,7 @@ class Isosurface:
         self.objects_list = cmd.get_names('objects')
         self.maps_list = [e for e in self.objects_list
                           if cmd.get_type(e) == 'object:map']
+        self.form.mapselector.clear()
         self.form.mapselector.addItems(self.maps_list)
 
     def iso_to_slider(self, isovalue):
@@ -177,6 +179,12 @@ class Isosurface:
             self.fill_map_list()
             self.load_isosurface(self.current_mrc)
 
+    def save_zone(self):
+        coords = cmd.get_coords(selection='zone_selection')
+        mrc = mrcutils.MRC('%s.mrc' % self.current_mrc)
+        zone_filename = '%s_zone.mrc' % self.current_mrc
+        mrc.zone(coords, radius=self.zone_radius, mrcfilename=zone_filename)
+
     def bindings(self):
         self.form.mapselector.activated.connect(lambda: self.load_isosurface(self.current_mrc, setvalue=False))
         self.form.isoslider.valueChanged.connect(lambda: self.set_isovalue())
@@ -186,3 +194,5 @@ class Isosurface:
         self.form.transparency_slider.valueChanged.connect(self.set_transparency)
         self.form.emd_id.returnPressed.connect(self.fetch_emd)
         self.form.zone_checkBox.stateChanged.connect(self.toggle_zone_map)
+        self.form.save_zone_button.pressed.connect(self.save_zone)
+        self.form.refresh_button.pressed.connect(self.fill_map_list)
