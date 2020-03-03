@@ -104,3 +104,12 @@ class MRC(object):
         self.grid = self.grid * mask
         self.write_mrc(mrcfilename=mrcfilename)
         self.read_mrc(mrcfilename=mrcfilename)
+
+    def index_to_coords(self, index):
+        """
+        Convert a list of grid indices to coordinates
+        """
+        index = [numpy.ravel_multi_index(ind, dims=self.grid.shape) for ind in index]
+        coords = self.grid_coords.reshape((-1, 3))
+        coords = numpy.asarray([coords[ind] for ind in index])
+        return coords
