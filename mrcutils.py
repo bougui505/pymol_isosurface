@@ -10,37 +10,6 @@ import numpy
 import scipy.spatial.distance
 
 
-def first_to_last(arr):
-    """
-    Put first axis of an array to last
-    """
-    return numpy.squeeze(arr[..., None].swapaxes(0, -1))
-
-
-def zone(mrc, coords, radius, mrcfilename):
-    """
-    Get a new mrc object with a zone selection around the given coordinates at
-    a given radius
-    """
-    mrc_crop = crop(mrc=mrc, coords=coords, padding=radius,
-                    mrcfilename='crop.mrc')
-    ni, nj, nk, _ = mrc_crop.grid_coords.shape
-    grid_coords = mrc_crop.grid_coords.reshape((-1, 3))
-    # grid_indices = mrc_crop.grid_indices.reshape((-1, 3))
-    kdtree = scipy.spatial.KDTree(grid_coords, leafsize=10000)
-    selection = kdtree.query_ball_point(x=coords, r=radius)
-    mask = numpy.zeros(ni * nj * nk)
-    numpy.put(mask, ind=selection[0], v=1.)
-    mask = mask.reshape((ni, nj, nk))
-    grid_zone = mrc_crop.grid * mask
-    save_density(density=grid_zone, outfilename=mrcfilename,
-                 spacing=mrc_crop.step, origin=mrc_crop.origin)
-    mrc_zone = MRC(mrcfilename)
-    return mrc_zone
-
-
-
-
 class MRC(object):
     def __init__(self, mrcfilename):
         self.mrcfilename = mrcfilename
@@ -110,5 +79,28 @@ class MRC(object):
                               ind_min[1]:ind_max[1],
                               ind_min[2]:ind_max[2]]
         self.origin = self.grid_coords[tuple(ind_min)]
+        self.write_mrc(mrcfilename=mrcfilename)
+        self.read_mrc(mrcfilename=mrcfilename)
+
+    def zone(self, coords, radius, mrcfilename=None):
+        """
+        Get a new mrc object with a zone selection around the given coordinates at
+        a given radius
+        """
+        self.crop(coords, padding=radius, mrcfilename=mrcfilename)
+        ni, nj, nk, _ = self.grid_coords.shape
+        grid_coords = self.grid_coords.reshape((-1, 3))
+        # grid_indices = mrc_crop.grid_indices.reshape((-1, 3))
+        kdtree = scipy.spatial.KDTree(grid_coords, leafsize=10000)
+        selections = kdtree.query_ball_point(x=coords, r=radius)
+        selection = []
+        for sel in selections:
+            selection.extend(sel)
+        selection = numpy.unique(selection)
+        del selections
+        mask = numpy.zeros(ni * nj * nk)
+        numpy.put(mask, ind=selection, v=1.)
+        mask = mask.reshape((ni, nj, nk))
+        self.grid = self.grid * mask
         self.write_mrc(mrcfilename=mrcfilename)
         self.read_mrc(mrcfilename=mrcfilename)
