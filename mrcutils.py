@@ -5,9 +5,27 @@
 # https://research.pasteur.fr/en/member/guillaume-bouvier/
 # 2020-02-14 11:42:10 (UTC+0100)
 
+import collections
 import mrcfile
 import numpy
 import scipy.spatial.distance
+import scipy.sparse.csgraph
+import sklearn.feature_extraction
+
+
+def mask_graph(adjmat, mask):
+    """
+    mask a graph
+    - adjmat: coo sparse matrix
+    - mask: list of node index to keep
+    """
+    row_mask = numpy.isin(adjmat.row, mask)
+    col_mask = numpy.isin(adjmat.col, mask)
+    mask = numpy.logical_or(row_mask, col_mask)
+    adjmat.row = adjmat.row[mask]
+    adjmat.col = adjmat.col[mask]
+    adjmat.data = adjmat.data[mask]
+    return adjmat
 
 
 class MRC(object):
@@ -113,3 +131,38 @@ class MRC(object):
         coords = self.grid_coords.reshape((-1, 3))
         coords = numpy.asarray([coords[ind] for ind in index])
         return coords
+
+    def minimum_spanning_tree(self, isolevel):
+        """
+        Compute the minimum spanning tree of the density map
+        - isolevel: Isolevel to mask voxels
+        """
+        MStree = collections.namedtuple('MStree', ['adjmat', 'ind', 'coords',
+                                                   'degrees'])
+        adjmat = sklearn.feature_extraction.image.img_to_graph(self.grid)
+        mask = self.grid > 0.099
+        mask = numpy.where(mask.flatten())[0]
+        adjmat = mask_graph(adjmat, mask)
+        mstree = scipy.sparse.csgraph.minimum_spanning_tree(adjmat)
+        mstree = mstree.tocoo()
+        ind_unique = numpy.unique(numpy.concatenate((mstree.row, mstree.col)))
+        ind = numpy.asarray([numpy.unravel_index(i, self.grid.shape)
+                             for i in ind_unique])
+        mstree_coords = self.index_to_coords(ind)
+        del ind
+# ---------------------- Compute the degree of the nodes -----------------------
+        mstree_bin = mstree.copy()
+        mstree_bin.data = numpy.ones_like(mstree_bin.data)
+        _, degrees = scipy.sparse.csgraph.laplacian(mstree_bin, return_diag=True)
+        del mstree_bin
+        degrees_unique = degrees.take(ind_unique)
+        del degrees
+# ----------------- Remove coordinates and index with degree 0 -----------------
+        sel = degrees_unique > 0
+        mstree_coords = mstree_coords[sel]
+        ind_unique = ind_unique[sel]
+        degrees_unique = degrees_unique[sel]
+# ------------------------------------- - --------------------------------------
+        self.mstree = MStree(adjmat=mstree, ind=ind_unique,
+                             coords=mstree_coords, degrees=degrees_unique)
+        return self.mstree
