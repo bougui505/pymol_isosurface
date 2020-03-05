@@ -140,9 +140,11 @@ class MRC(object):
         MStree = collections.namedtuple('MStree', ['adjmat', 'ind', 'coords',
                                                    'degrees'])
         adjmat = sklearn.feature_extraction.image.img_to_graph(self.grid)
-        mask = self.grid > 0.099
+# ------------------- remove nodes with density <= isolevel --------------------
+        mask = self.grid > isolevel
         mask = numpy.where(mask.flatten())[0]
         adjmat = mask_graph(adjmat, mask)
+# --------------------- Compute the minimum spanning tree ----------------------
         mstree = scipy.sparse.csgraph.minimum_spanning_tree(adjmat)
         mstree = mstree.tocoo()
         ind_unique = numpy.unique(numpy.concatenate((mstree.row, mstree.col)))
