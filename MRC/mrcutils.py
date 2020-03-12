@@ -11,21 +11,7 @@ import numpy
 import scipy.spatial.distance
 import scipy.sparse.csgraph
 import sklearn.feature_extraction
-
-
-def mask_graph(adjmat, mask):
-    """
-    mask a graph
-    - adjmat: coo sparse matrix
-    - mask: list of node index to keep
-    """
-    row_mask = numpy.isin(adjmat.row, mask)
-    col_mask = numpy.isin(adjmat.col, mask)
-    mask = numpy.logical_or(row_mask, col_mask)
-    adjmat.row = adjmat.row[mask]
-    adjmat.col = adjmat.col[mask]
-    adjmat.data = adjmat.data[mask]
-    return adjmat
+from Graph import graphutils
 
 
 class MRC(object):
@@ -143,7 +129,7 @@ class MRC(object):
 # ------------------- remove nodes with density <= isolevel --------------------
         mask = self.grid > isolevel
         mask = numpy.where(mask.flatten())[0]
-        adjmat = mask_graph(adjmat, mask)
+        adjmat = graphutils.mask_graph(adjmat, mask)
 # --------------------- Compute the minimum spanning tree ----------------------
         mstree = scipy.sparse.csgraph.minimum_spanning_tree(adjmat)
         mstree = mstree.tocoo()
