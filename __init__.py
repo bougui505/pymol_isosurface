@@ -20,7 +20,7 @@ from pymol import cmd
 from pymol.Qt import QtWidgets
 from pymol.Qt.utils import loadUi
 import urllib.request
-import mrcutils
+from MRC import mrcutils
 
 
 def __init_plugin__(app=None):
