@@ -9,18 +9,18 @@ import numpy
 import scipy.sparse.csgraph
 
 
-def mask_graph(adjmat, mask):
+def mask_graph(adjmat, tokeep):
     """
     mask a graph
     - adjmat: coo sparse matrix
-    - mask: list of node index to keep
+    - tokeep: list of node index to keep
     """
-    row_mask = numpy.isin(adjmat.row, mask)
-    col_mask = numpy.isin(adjmat.col, mask)
-    mask = numpy.logical_or(row_mask, col_mask)
-    adjmat.row = adjmat.row[mask]
-    adjmat.col = adjmat.col[mask]
-    adjmat.data = adjmat.data[mask]
+    row_tokeep = numpy.isin(adjmat.row, tokeep)
+    col_tokeep = numpy.isin(adjmat.col, tokeep)
+    tokeep = numpy.logical_or(row_tokeep, col_tokeep)
+    adjmat.row = adjmat.row[tokeep]
+    adjmat.col = adjmat.col[tokeep]
+    adjmat.data = adjmat.data[tokeep]
     return adjmat
 
 
@@ -31,7 +31,9 @@ def get_degree(adjmat):
     return degrees
 
 
-def clean_degree_2(adjmat, degrees):
+def clean_degree_2(adjmat):
     """
     Remove nodes of degree 2 preserving the topology
     """
+    degrees = get_degree(adjmat)
+
