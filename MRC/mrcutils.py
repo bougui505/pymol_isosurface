@@ -139,10 +139,7 @@ class MRC(object):
         mstree_coords = self.index_to_coords(ind)
         del ind
 # ---------------------- Compute the degree of the nodes -----------------------
-        mstree_bin = mstree.copy()
-        mstree_bin.data = numpy.ones_like(mstree_bin.data)
-        _, degrees = scipy.sparse.csgraph.laplacian(mstree_bin, return_diag=True)
-        del mstree_bin
+        degrees = graphutils.get_degree(mstree)
         degrees_unique = degrees.take(ind_unique)
         del degrees
 # ----------------- Remove coordinates and index with degree 0 -----------------

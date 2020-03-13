@@ -6,6 +6,7 @@
 # 2020-03-12 17:28:01 (UTC+0100)
 
 import numpy
+import scipy.sparse.csgraph
 
 
 def mask_graph(adjmat, mask):
@@ -21,6 +22,13 @@ def mask_graph(adjmat, mask):
     adjmat.col = adjmat.col[mask]
     adjmat.data = adjmat.data[mask]
     return adjmat
+
+
+def get_degree(adjmat):
+    adjmat_bin = adjmat.copy()
+    adjmat_bin.data = numpy.ones_like(adjmat_bin.data)
+    _, degrees = scipy.sparse.csgraph.laplacian(adjmat_bin, return_diag=True)
+    return degrees
 
 
 def clean_degree_2(adjmat, degrees):
