@@ -133,6 +133,7 @@ class MRC(object):
 # --------------------- Compute the minimum spanning tree ----------------------
         mstree = scipy.sparse.csgraph.minimum_spanning_tree(adjmat)
         mstree = mstree.tocoo()
+        mstree = graphutils.symmetrize_adjmat(mstree)
         ind_unique = numpy.unique(numpy.concatenate((mstree.row, mstree.col)))
         ind = numpy.asarray([numpy.unravel_index(i, self.grid.shape)
                              for i in ind_unique])

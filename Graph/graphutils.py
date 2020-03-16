@@ -7,6 +7,39 @@
 
 import numpy
 import scipy.sparse.csgraph
+from collections import defaultdict
+
+
+def sparse_to_dict(adjmat, symmetrize=False):
+    """
+    Convert a sparse adjmat matrix to a dictionnary
+    """
+    graph_dict = defaultdict(dict)
+    for r, c, d in zip(adjmat.row, adjmat.col, adjmat.data):
+        graph_dict[r][c] = d
+        if symmetrize:
+            graph_dict[c][r] = d
+    return graph_dict
+
+
+def dict_to_sparse(graph_dict):
+    """
+    Convert the graph_dict object to a sparse coo_matrix
+    """
+    row, col, data = [], [], []
+    for r in graph_dict:
+        for c in graph_dict[r]:
+            d = graph_dict[r][c]
+            row.append(r)
+            col.append(c)
+            data.append(d)
+    adjmat = scipy.sparse.coo_matrix((data, (row, col)))
+    return adjmat
+
+
+def symmetrize_adjmat(adjmat):
+    graph_dict = sparse_to_dict(adjmat, symmetrize=True)
+    return dict_to_sparse(graph_dict)
 
 
 def mask_graph(adjmat, tokeep):
@@ -36,4 +69,5 @@ def clean_degree_2(adjmat):
     Remove nodes of degree 2 preserving the topology
     """
     degrees = get_degree(adjmat)
-
+    tokeep = numpy.where((degrees != 2))[0]
+    mask_graph(adjmat, tokeep)
