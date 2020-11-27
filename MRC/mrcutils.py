@@ -11,7 +11,7 @@ import numpy
 import scipy.spatial.distance
 import scipy.sparse.csgraph
 import sklearn.feature_extraction
-from Graph import graphutils
+from ..Graph import graphutils
 
 
 class MRC(object):
