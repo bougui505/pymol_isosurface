@@ -20,7 +20,7 @@ from pymol import cmd
 from pymol.Qt import QtWidgets
 from pymol.Qt.utils import loadUi
 import urllib.request
-from MRC import mrcutils
+from .MRC import mrcutils
 
 
 def __init_plugin__(app=None):
@@ -65,8 +65,7 @@ class Isosurface:
 
     def fill_map_list(self):
         self.objects_list = cmd.get_names('objects')
-        self.maps_list = [e for e in self.objects_list
-                          if cmd.get_type(e) == 'object:map']
+        self.maps_list = [e for e in self.objects_list if cmd.get_type(e) == 'object:map']
         self.form.mapselector.clear()
         self.form.mapselector.addItems(self.maps_list)
 
@@ -125,8 +124,7 @@ class Isosurface:
             return None
 
     def set_transparency(self):
-        cmd.set('transparency', value=self.transparency_value,
-                selection=self.isosurfname)
+        cmd.set('transparency', value=self.transparency_value, selection=self.isosurfname)
 
     def set_isoslider(self, mrc, setvalue=True):
         self.grid = cmd.get_volume_field(mrc)
@@ -147,8 +145,11 @@ class Isosurface:
 
     def set_isovalue(self):
         if self.zone_selection is not None and self.zone_radius is not None and self.is_zone:
-            cmd.isosurface(self.isosurfname, self.current_mrc, level=self.isoslider_value,
-                           selection=self.zone_selection, carve=self.zone_radius)
+            cmd.isosurface(self.isosurfname,
+                           self.current_mrc,
+                           level=self.isoslider_value,
+                           selection=self.zone_selection,
+                           carve=self.zone_radius)
         else:
             cmd.isosurface(self.isosurfname, self.current_mrc, level=self.isoslider_value)
         self.form.isoval_edit.setText(str(self.isoslider_value))
@@ -157,16 +158,18 @@ class Isosurface:
         cmd.select('zone_selection', selection=self.zone_selection, enable=0)
 
     def zone_map(self):
-        cmd.isosurface(self.isosurfname, self.current_mrc, level=self.isoslider_value,
-                       selection='zone_selection', carve=self.zone_radius)
+        cmd.isosurface(self.isosurfname,
+                       self.current_mrc,
+                       level=self.isoslider_value,
+                       selection='zone_selection',
+                       carve=self.zone_radius)
         self.form.zone_checkBox.setChecked(True)
 
     def toggle_zone_map(self):
         if self.is_zone:
             self.zone_map()
         else:
-            cmd.isosurface(self.isosurfname, self.current_mrc,
-                           level=self.isoslider_value)
+            cmd.isosurface(self.isosurfname, self.current_mrc, level=self.isoslider_value)
 
     def fetch_emd(self):
         if self.emd_id is not None:
@@ -188,7 +191,8 @@ class Isosurface:
     def bindings(self):
         self.form.mapselector.activated.connect(lambda: self.load_isosurface(self.current_mrc, setvalue=False))
         self.form.isoslider.valueChanged.connect(lambda: self.set_isovalue())
-        self.form.isoval_edit.editingFinished.connect(lambda: self.form.isoslider.setValue(self.iso_to_slider(self.isotext_value)))
+        self.form.isoval_edit.editingFinished.connect(
+            lambda: self.form.isoslider.setValue(self.iso_to_slider(self.isotext_value)))
         self.form.selectionbox.editingFinished.connect(self.get_zone_selection)
         self.form.radiusbox.editingFinished.connect(self.zone_map)
         self.form.transparency_slider.valueChanged.connect(self.set_transparency)
