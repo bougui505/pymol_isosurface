@@ -11,7 +11,7 @@ import numpy
 import scipy.spatial.distance
 import scipy.sparse.csgraph
 import sklearn.feature_extraction
-from Graph import graphutils
+from ..Graph import graphutils
 
 
 class MRC(object):
@@ -79,9 +79,7 @@ class MRC(object):
         ind_max = numpy.linalg.norm(grid_coords - xyz_max, axis=1).argmin()
         ind_min = grid_indices[ind_min]
         ind_max = grid_indices[ind_max]
-        self.grid = self.grid[ind_min[0]:ind_max[0],
-                              ind_min[1]:ind_max[1],
-                              ind_min[2]:ind_max[2]]
+        self.grid = self.grid[ind_min[0]:ind_max[0], ind_min[1]:ind_max[1], ind_min[2]:ind_max[2]]
         self.origin = self.grid_coords[tuple(ind_min)]
         self.write_mrc(mrcfilename=mrcfilename)
         self.read_mrc(mrcfilename=mrcfilename)
@@ -123,32 +121,29 @@ class MRC(object):
         Compute the minimum spanning tree of the density map
         - isolevel: Isolevel to mask voxels
         """
-        MStree = collections.namedtuple('MStree', ['adjmat', 'ind', 'coords',
-                                                   'degrees'])
+        MStree = collections.namedtuple('MStree', ['adjmat', 'ind', 'coords', 'degrees'])
         adjmat = sklearn.feature_extraction.image.img_to_graph(self.grid)
-# ------------------- remove nodes with density <= isolevel --------------------
+        # ------------------- remove nodes with density <= isolevel --------------------
         mask = self.grid > isolevel
         mask = numpy.where(mask.flatten())[0]
         adjmat = graphutils.mask_graph(adjmat, mask)
-# --------------------- Compute the minimum spanning tree ----------------------
+        # --------------------- Compute the minimum spanning tree ----------------------
         mstree = scipy.sparse.csgraph.minimum_spanning_tree(adjmat)
         mstree = mstree.tocoo()
         mstree = graphutils.symmetrize_adjmat(mstree)
         ind_unique = numpy.unique(numpy.concatenate((mstree.row, mstree.col)))
-        ind = numpy.asarray([numpy.unravel_index(i, self.grid.shape)
-                             for i in ind_unique])
+        ind = numpy.asarray([numpy.unravel_index(i, self.grid.shape) for i in ind_unique])
         mstree_coords = self.index_to_coords(ind)
         del ind
-# ---------------------- Compute the degree of the nodes -----------------------
+        # ---------------------- Compute the degree of the nodes -----------------------
         degrees = graphutils.get_degree(mstree)
         degrees_unique = degrees.take(ind_unique)
         del degrees
-# ----------------- Remove coordinates and index with degree 0 -----------------
+        # ----------------- Remove coordinates and index with degree 0 -----------------
         sel = degrees_unique > 0
         mstree_coords = mstree_coords[sel]
         ind_unique = ind_unique[sel]
         degrees_unique = degrees_unique[sel]
-# ------------------------------------- - --------------------------------------
-        self.mstree = MStree(adjmat=mstree, ind=ind_unique,
-                             coords=mstree_coords, degrees=degrees_unique)
+        # ------------------------------------- - --------------------------------------
+        self.mstree = MStree(adjmat=mstree, ind=ind_unique, coords=mstree_coords, degrees=degrees_unique)
         return self.mstree
